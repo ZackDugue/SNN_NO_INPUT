@@ -36,14 +36,13 @@ Ret.htmp = zeros(nR,1); %Heatmap # of times each neuron spikes
 %}
 
 %% LGN (L2) Structure Parameters
-parameter_property_matrix = zeros(8000,12)
-
-
-paramater_property_vec = zeros(1,12)
+loop_count = 1
+data = []
+for Q = 1:loop_count
+tic
 LGN = {};       % LGN Data Structure
 LGN.v_reset = 0 + 0.1*randn(nL,1).^2;     %Noise on activity field
-disp('i')
-disp(i)
+
 % Spatial Parameters
 %% sql is the dimensions of the aquare the neural net exists in.
 %% LGN.nx creates the positions of all the neurons
@@ -78,21 +77,22 @@ LGN.htmp = zeros(nL,1); %Heatmap # of times each neuron spikes
 Vt = LGN.ao; Tt = LGN.tau_v; Lt = sqL;
 
 
-
-
-a = .1 + 2*rand() 
-b = .3 + 2.2*rand()
-c = abs(2-sqrt(-4*(rand()-1.3))) + abs(randn()/4)
-d = rand()*5 
-e = .5 + 1.5*rand()
-f = abs(1 + randn()*.4)
-g = f * (1+rand())
-h = rand()*1 + randn()*.5
-
-
-
 % Non-dimensional groups
-%%Mixed/
+%%Mixed
+% 
+a = 2*rand()
+b = rand()*2.2 + .3
+c = abs(randn()+.2)
+d_1 = (0:.2:1);
+d_2 = (1 :.5 : 5);
+d_12 = [d_1,d_2];
+d = randsample(d_12,1)+.1*rand(1)
+e = rand()*2 + .5
+f = rand()*2 + .5
+g = rand()*1.5+ 1 * f
+h = rand()*1.9 + 1
+
+
 piTV_plus = a*LGN.th_plus * Tt / Vt
 %%Temporal
 piT_th =  b*Tt / LGN.tau_th 
@@ -113,10 +113,10 @@ LGN.Ss = piV_ai *(LGN.Ds < piL_ri)- (LGN.Ds > piL_ro).*exp(-LGN.Ds / piL_lam);
 LGN.Ss = LGN.Ss - diag(diag(LGN.Ss));      %Adjacency matrix between Neurons in Retina
 
 % Reference Kernel vs. Non-dimensional Kernel
-% figure
-% 
-% subplot(1,2,1), plot([0:0.01:sqL], LGN.ai*([0:0.01:sqL] < LGN.ri)- LGN.ao*([0:0.01:sqL] > LGN.ro).*exp(-[0:0.01:sqL] / LGN.lam)),xlim([0,sqL]), title('Ref. Kernel')
-% subplot(1,2,2), plot([0:0.001:1],piV_ai *([0:0.001:1] < piL_ri)- ([0:0.001:1] > piL_ro).*exp(-[0:0.001:1] / piL_lam)), title('Non-dim. Kernel')
+figure
+
+subplot(1,2,1), plot([0:0.01:sqL], LGN.ai*([0:0.01:sqL] < LGN.ri)- LGN.ao*([0:0.01:sqL] > LGN.ro).*exp(-[0:0.01:sqL] / LGN.lam)),xlim([0,sqL]), title('Ref. Kernel')
+subplot(1,2,2), plot([0:0.001:1],piV_ai *([0:0.001:1] < piL_ri)- ([0:0.001:1] > piL_ro).*exp(-[0:0.001:1] / piL_lam)), title('Non-dim. Kernel')
 
 LGN.vs = 0*ones(nL,1)/Vt; LGN.fbs = 0*ones(nL,1)/Vt; LGN.ths = ones(nL,1)/Vt;
 LGN.Hs = sparse(zeros(nL,1)); LGN.htmps = zeros(nL,1);
@@ -127,7 +127,7 @@ LGN.Hs = sparse(zeros(nL,1)); LGN.htmps = zeros(nL,1);
 %% dt is the time step that's used (i think)
 %% tint is the time to the end as an interval
 %% and ts is the start time of the network
-Tend = 3e2; dt = 0.1; tint = 0:Tend/1; ts = 0;
+Tend = 1e3; dt = 0.1; tint = 0:Tend/1; ts = 0;
 fnoise = 10*randn(nL,1*length(tint)); % Pre-generate noise
 % fnoise = X_input;
 % fnoiseI = interp1(tint',fnoise',[0:dt:Tend]','linear')';
@@ -155,8 +155,8 @@ old_wave_id = zeros(nL,1)
 
 %% creates a for loop that takes time step of dt. 
 for tt = 0:dt:Tend-dt
-%     fprintf('tt: %d\n' , tt)
-%     fprintf('i: %d7n' , i)
+    disp("tt")
+    disp(tt)
     LGN.eta = fnoise(:,round(tt+1)); 
 %     LGN.eta = X_input(:,round(tt/5)+1);
     LGN.etas = fnoise(:,round(tt+1)) / Vt; 
@@ -219,29 +219,27 @@ for tt = 0:dt:Tend-dt
 %     disp('LGN.nxs(fireRs,:)')
 %     disp(LGN.nxs(fireRs,:))
     
-%     if size(LGN.nxs(fireRs,:)) == size([1,2])
-%         position = LGN.nxs(fireRs,:)
-%     else
-%         position = mean(LGN.nxs(fireRs,:));
-%     end
+    if size(LGN.nxs(fireRs,:)) == size([1,2])
+        position = LGN.nxs(fireRs,:)
+    else
+        position = mean(LGN.nxs(fireRs,:));
+    end
     
 %     disp('dimensions of position')
 %     disp(ndims(position))
 %     disp(size(position))
 %     disp('position')
 %     disp(position)
-%     disp('size(position)')
-%     disp(size(position))
-%     disp('position')
-%     disp(position)
-    disp('tt')
-    disp(tt)
-% if tt == 0
-%         position_list = zeros(1,2);
-%     else
-%         position_list = [position_list; position];
-%     end 
-%     
+    disp('size(position)')
+    disp(size(position))
+    disp('position')
+    disp(position)
+    if tt == 0
+        position_list = zeros(1,2);
+    else
+        position_list = [position_list; position];
+    end 
+    
     if mod(tt,1) == 0
         Xv(:,ts+1) = tmpR; Xu(:,ts+1) = LGN.fb; Xth(:,ts+1) = LGN.th;
         Xvs(:,ts+1) = tmpRs; Xus(:,ts+1) = LGN.fbs; Xths(:,ts+1) = LGN.ths;
@@ -366,9 +364,14 @@ avg_wave_neuron_flux
 % spread out.
 wave_distributivity
 
-% 
-% paramater_property_vec = [a , b , c , d, e ,f, g, h, avg_wave_size, avg_wave_volatility, avg_wave_neuron_flux, wave_distributivity]
-% paramater_property_mat(i,:) = paramater_property_vec
+
+data_temp = [a;b;c;d;e;f;g;h; avg_wave_size;avg_wave_volatility;avg_wave_neuron_flux;mod(wave_distributivity,10);floor(log10(wave_distributivity))]
+data = [data, data_temp]
+toc
+end
+wave_data = data
+save('wave_data')
+
 
 
 
@@ -389,8 +392,9 @@ wave_distributivity
 %         subplot(1,3,3),plot(tint(1:end-1),Xths(1:40:end,:),'-o');                           title('Non-dim LGN.ths')
 % 
 %% Visualization of Wave
-halt = true
-for ii = 1:4:length(tint)-1
+% end 
+% halt = true
+% for ii = 1:4:length(tint)-1
 %     if ii > 200
 %         if halt == true
 %            input('halt')
@@ -399,12 +403,12 @@ for ii = 1:4:length(tint)-1
 %     end
 %     f = figure(7); 
 %     f.Position(1:4) = [0 0 1600 800];
-% % subplot(1,2,1), title(['Non-dim. Wave t = ' num2str(ii)]), axis ij image, hold on,
+% subplot(1,2,1), title(['Non-dim. Wave t = ' num2str(ii)]), axis ij image, hold on,
 %     scatter(LGN.nxs(:,1),LGN.nxs(:,2),'k','filled'); scatter(position_list(4*ii,1),position_list(4*ii,2),'r','filled');
 %     subplot(1,2,2), title(['Non-dim. Wave t = ' num2str(ii)]), axis ij image, hold on,
 %     scatter(LGN.nxs(:,1),LGN.nxs(:,2),'k','filled'); scatter(LGN.nxs(firedMats{ii},1),LGN.nxs(firedMats{ii},2),'r','filled');
 %                                              
-% % %        
+% %        
 % % %           gifname2='wave_VS_nondim_wave.gif'; frame = getframe(gcf);  im = frame2im(frame);  [imind,cm] = rgb2ind(im,256);
 % % % 
 % % %            Write to the GIF File 
@@ -414,6 +418,6 @@ for ii = 1:4:length(tint)-1
 % % %               imwrite(imind,cm,gifname2,'gif','DelayTime',0.1,'WriteMode','append'); 
 % % %           end 
 % %     
-end
-
-save('paramater_property_mat' , 'paramater_property_mat')
+% end
+% 
+% }
